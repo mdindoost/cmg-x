@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.egg-info/
+*.pkl
+*.log
+*.pyc 
+build/
+dist/
+
+# Build outputs
+*.o
+*.out
+*.a
+*.so
+*.dylib
+*.dll
+libcmgCluster.so
+libcmgCluster.dylib
+cmgCluster.dll
+
+# IDE/editor artifacts
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test outputs
+*.pytest_cache/
+*.coverage
+*.prof
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Reports
+CMGX_Benchmark_Report.md
+*.pdf
+*.tex
+*.aux
+*.log
+data/
+experimrnts/logs/
+experiments/logs/
+experiments/data/
