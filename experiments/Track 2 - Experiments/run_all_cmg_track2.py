@@ -181,7 +181,8 @@ def run_one_experiment(dataset_name, pooling_mode, feature_type, run_name):
     print(f"✅ Finished: {run_name}")
 
 # ✅ Only test original features, with unpooling
-datasets = ["Cora", "Citeseer", "Pubmed"]
+datasets = ["Pubmed"]
+# datasets = ["Cora", "Citeseer", "Pubmed"]
 pooling_modes = ["mean", "sum"]
 feature_type = "original"
 

@@ -40,9 +40,9 @@ reconstruction.pt	    Serialized X, X̂, and snapshots (useful for future)
 
 '''
 
-
 import os
 import json
+import time
 import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
@@ -54,12 +54,14 @@ from sklearn.manifold import TSNE
 from datetime import datetime
 
 def run_one_experiment(dataset_name, pooling_mode, feature_type, run_name):
+    print(f"\n🚀 Starting run: {run_name}")
+    print(f"📊 Dataset: {dataset_name} | Pooling: {pooling_mode} | Feature: {feature_type}\n")
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     dataset = Planetoid(root=f"data/{dataset_name}", name=dataset_name)
     data = dataset[0].to(device)
     data.batch = torch.zeros(data.num_nodes, dtype=torch.long, device=device)
 
-    # Feature selection
     if feature_type == "original":
         X = data.x
     else:
@@ -84,8 +86,12 @@ def run_one_experiment(dataset_name, pooling_mode, feature_type, run_name):
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
     losses, cos_sims, snapshots = [], [], {}
+    total_epochs = 200
 
-    for epoch in range(1, 401):
+    print(f"🧠 Training model for {total_epochs} epochs...\n")
+    for epoch in range(1, total_epochs + 1):
+        start_time = time.time()
+
         model.train()
         optimizer.zero_grad()
         x_hat, P = model(X, data.edge_index, data.batch)
@@ -98,7 +104,7 @@ def run_one_experiment(dataset_name, pooling_mode, feature_type, run_name):
             cos_sim = F.cosine_similarity(x_hat, X).mean().item()
 
         if torch.isnan(loss):
-            print(f"NaN detected at epoch {epoch}")
+            print(f"❌ NaN detected at epoch {epoch}, stopping early.")
             break
 
         loss.backward()
@@ -106,8 +112,20 @@ def run_one_experiment(dataset_name, pooling_mode, feature_type, run_name):
 
         losses.append(loss.item())
         cos_sims.append(cos_sim)
+
+        duration = time.time() - start_time
+        print(f"[{dataset_name}] Epoch {epoch:03d} | MSE: {loss.item():.6f} | CosSim: {cos_sim:.4f} | Time: {duration:.2f}s")
+
         if epoch % 100 == 0:
             snapshots[epoch] = x_hat.detach().cpu()
+            os.makedirs(f"logs/autoencode/{run_name}", exist_ok=True)
+
+            torch.save({
+                "x_hat": x_hat.detach().cpu(),
+                "x": X.detach().cpu(),
+                "snapshots": snapshots
+            }, f"logs/autoencode/{run_name}/reconstruction_epoch{epoch}.pt")
+            print(f"💾 Autosaved snapshot at epoch {epoch}")
 
     model.eval()
     with torch.no_grad():
@@ -128,7 +146,7 @@ def run_one_experiment(dataset_name, pooling_mode, feature_type, run_name):
             "cosine_sim": cos_sims
         }, f)
 
-    # Plot loss
+    print("📈 Saving plots...")
     plt.figure()
     plt.plot(losses)
     plt.title(f"{run_name} MSE Loss")
@@ -138,7 +156,6 @@ def run_one_experiment(dataset_name, pooling_mode, feature_type, run_name):
     plt.savefig(os.path.join(out_dir, "mse_loss.png"))
     plt.close()
 
-    # Plot cosine sim
     plt.figure()
     plt.plot(cos_sims)
     plt.title(f"{run_name} Cosine Similarity")
@@ -148,7 +165,6 @@ def run_one_experiment(dataset_name, pooling_mode, feature_type, run_name):
     plt.savefig(os.path.join(out_dir, "cos_sim.png"))
     plt.close()
 
-    # Plot error histogram and t-SNE
     if x_hat.shape[0] == X.shape[0]:
         node_errors = ((x_hat - X) ** 2).sum(dim=1).detach().cpu().numpy()
         plt.figure()
@@ -161,6 +177,7 @@ def run_one_experiment(dataset_name, pooling_mode, feature_type, run_name):
         plt.close()
 
         try:
+            print("🧬 Computing t-SNE...")
             X_comb = torch.cat([X.detach().cpu(), x_hat.detach().cpu()], dim=0).numpy()
             tsne = TSNE(n_components=2, perplexity=30, random_state=42)
             X_2d = tsne.fit_transform(X_comb)
@@ -174,15 +191,15 @@ def run_one_experiment(dataset_name, pooling_mode, feature_type, run_name):
             plt.savefig(os.path.join(out_dir, "tsne.png"))
             plt.close()
         except Exception as e:
-            print(f"[Warning] t-SNE failed: {e}")
+            print(f"[⚠️ Warning] t-SNE failed: {e}")
     else:
         print(f"⚠️ Skipping histogram and t-SNE due to mismatched shapes: {x_hat.shape} vs {X.shape}")
 
-    print(f"✅ Finished: {run_name}")
+    print(f"✅ Finished: {run_name}\n")
 
-# ✅ Only test original features, with unpooling
+
+# === MAIN ===
 datasets = ["Pubmed"]
-# datasets = ["Cora", "Citeseer", "Pubmed"]
 pooling_modes = ["mean", "sum"]
 feature_type = "original"
 
