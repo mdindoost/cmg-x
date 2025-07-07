@@ -1,8 +1,7 @@
 import torch
-from cmgx.torch_interface import cmg_pool, cmg_unpool
+from cmgx.torch_interface import cmg_pool, cmg_unpool_features
 import scipy.sparse as sp
 import numpy as np
-
 
 def test_cmg_unpool_reconstruction():
     # Simple path graph
@@ -22,9 +21,8 @@ def test_cmg_unpool_reconstruction():
     Xp, Lp, P = cmg_pool(X, L)
 
     # Unpool
-    X_hat = cmg_unpool(Xp, P)
+    X_hat = cmg_unpool_features(Xp, P, method='copy')
 
-    # Since we use mean pooling, this is not identity — but should approximate
+    # Check reconstruction sanity
     assert X_hat.shape == X.shape
     assert torch.allclose(X_hat.sum(), X.sum(), atol=1e-5)
-

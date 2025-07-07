@@ -85,21 +85,63 @@ def cmg_pool(X: torch.Tensor, L: torch.Tensor, batch: torch.Tensor = None):
 
     return torch.cat(all_Xc, dim=0), all_Lc, all_P
 
-def cmg_unpool(X_coarse: torch.Tensor, P: torch.Tensor) -> torch.Tensor:
+def cmg_unpool_features(X_c, P, method='copy', cluster_assignments=None, degree=None):
     """
-    Unpool node features using assignment matrix.
+    Unpools coarse features back to fine level using various methods.
 
     Args:
-        X_coarse (Tensor): Coarsened node features [Nc, F]
-        P (Tensor or List[Tensor]): Assignment matrix [N, Nc] or list of such
+        X_c (Tensor): (C, F) coarse features
+        P (Tensor): (N, C) assignment matrix
+        method (str): 'copy', 'mean', 'central', 'random', 'first'
+        cluster_assignments (Tensor): (N,) cluster index per node (required for non-matrix modes)
+        degree (Tensor): (N,) node degree vector (required for 'central')
 
     Returns:
-        X_fine (Tensor): Reconstructed node features [N, F]
+        X (Tensor): (N, F) fine-level reconstructed features
     """
-
     if isinstance(P, list):
-        P = torch.cat(P, dim=0)
-    return P @ X_coarse
+        P = P[0]
+
+    if method in ['copy', 'mean']:
+        X = P @ X_c
+        if method == 'mean':
+            cluster_sizes = P.sum(dim=1).clamp(min=1).unsqueeze(1)
+            X = X / cluster_sizes
+        return X
+
+    if cluster_assignments is None:
+        raise ValueError("cluster_assignments must be provided for method = '{}'".format(method))
+
+    N, F = P.shape[0], X_c.shape[1]
+    X = torch.zeros((N, F), device=X_c.device)
+
+    for cluster_id in range(X_c.shape[0]):
+        members = (cluster_assignments == cluster_id).nonzero(as_tuple=False).squeeze()
+        if members.numel() == 0:
+            continue
+
+        if method == 'first':
+            idx = members.item() if members.ndim == 0 else members[0]
+
+        elif method == 'random':
+            idx = members.item() if members.numel() == 1 else members[torch.randint(len(members), (1,)).item()]
+
+
+        elif method == 'central':
+            if degree is None:
+                raise ValueError("degree vector is required for 'central' method")
+            if members.numel() == 1:
+                idx = members.item()
+            else:
+                idx = members[degree[members].argmax()]
+
+        else:
+            raise ValueError(f"Unknown unpooling method: {method}")
+
+        X[idx] = X_c[cluster_id]
+
+    return X
+
     
 def cmg_multilevel(L: torch.Tensor, levels: int = 3) -> Tuple[List[torch.Tensor], List[torch.Tensor]]:
     """
@@ -226,28 +268,5 @@ def cmg_pool_features(X, P, method='sum'):
     return X_c
 
 
-def cmg_unpool_features(X_c, P, method='copy'):
-    """
-    Unpools coarse features back to fine level.
 
-    Args:
-        X_c (Tensor): (C, F) coarse features
-        P (Tensor): (N, C) assignment matrix
-        method (str): 'copy' or 'mean' (optional normalization)
-
-    Returns:
-        X (Tensor): (N, F) fine-level reconstructed features
-    """
-    if isinstance(P, list):
-        P = P[0]
-        
-    X = P @ X_c
-
-    if method == 'mean':
-        cluster_sizes = P.sum(dim=1).clamp(min=1).unsqueeze(1)
-        X = X / cluster_sizes
-    elif method != 'copy':
-        raise ValueError(f"Invalid method: {method}. Use 'copy' or 'mean'.")
-
-    return X
 

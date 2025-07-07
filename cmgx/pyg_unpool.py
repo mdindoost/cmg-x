@@ -1,24 +1,28 @@
 import torch
 import torch.nn as nn
-from torch_geometric.nn import MessagePassing
+from cmgx.torch_interface import cmg_unpool_features
 
 class CMGUnpooling(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, x_coarse, P):
+    def __init__(self, method='copy'):
         """
         Args:
-            x_coarse: [Nc, F] tensor of coarse features
-            P: [N, Nc] sparse or dense assignment matrix (one-hot rows)
-        Returns:
-            x_fine: [N, F] fine-level reconstructed features
+            method (str): Unpooling strategy:
+                - 'copy' (default): broadcast coarse feature to all nodes in cluster
+                - 'mean': divide by cluster size
+                - 'first': assign feature to first node in cluster
+                - 'random': assign to random node in cluster
+                - 'central': assign to highest-degree node in cluster
         """
-        if isinstance(P, list):
-            P = torch.cat(P, dim=0)
+        super().__init__()
+        self.method = method
 
-        # Handle sparse matrix
-        if P.is_sparse:
-            return torch.sparse.mm(P, x_coarse)
-        else:
-            return P @ x_coarse
+    def forward(self, x_coarse, P, cluster_assignments=None, degree=None):
+        if isinstance(P, list):
+            P = P[0]
+
+        return cmg_unpool_features(
+            x_coarse, P,
+            method=self.method,
+            cluster_assignments=cluster_assignments,
+            degree=degree
+        )

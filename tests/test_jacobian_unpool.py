@@ -1,5 +1,5 @@
 import torch
-from cmgx.torch_interface import cmg_unpool
+from cmgx.torch_interface import cmg_unpool_features
 
 def test_cmg_unpool_jacobian_gradcheck():
     torch.manual_seed(42)
@@ -17,6 +17,6 @@ def test_cmg_unpool_jacobian_gradcheck():
     X_coarse = torch.randn(C, F, dtype=torch.float64, requires_grad=True)
 
     def unpool_func(Xc):
-        return cmg_unpool(Xc, P)
+        return cmg_unpool_features(Xc, P, method='copy')
 
     assert torch.autograd.gradcheck(unpool_func, (X_coarse,), eps=1e-6, atol=1e-4), "Unpooling failed gradcheck"
