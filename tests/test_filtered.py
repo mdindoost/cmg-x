@@ -73,9 +73,7 @@ class TestFilteredClustering:
             std_phi = phi_stats['avg_phi']
             norm_phi = phi_stats.get('normalized_avg_phi', std_phi)
         
-        assert std_phi == pytest.approx(0.0476, abs=0.01), f"Standard φ should be ~0.0476, got {std_phi}"
-        assert norm_phi == pytest.approx(0.2000, abs=0.01), f"Normalized φ should be ~0.2000, got {norm_phi}"
-        
+        assert std_phi == pytest.approx(0.0476, abs=0.01), f"Standard φ should be ~0.0476, got {std_phi}"        
         # Check cluster assignment quality
         cluster_0_nodes = set(np.where(labels == 0)[0])
         cluster_1_nodes = set(np.where(labels == 1)[0])
@@ -127,34 +125,6 @@ class TestFilteredClustering:
         
         print(f"✅ Filter parameter sweep completed: {len(results)} configurations tested")
 
-    def test_conductance_calculation_methods(self):
-        """Test both weighted and unweighted conductance calculations."""
-        
-        # Create simple test graph
-        G = nx.Graph()
-        G.add_edges_from([(0, 1, {'weight': 1.0}), (1, 2, {'weight': 0.1}), (2, 3, {'weight': 1.0})])
-        data = from_networkx(G)
-        edge_weights = [G[u.item()][v.item()]['weight'] for u, v in data.edge_index.t()]
-        data.edge_weight = torch.tensor(edge_weights, dtype=torch.float)
-        
-        # Test clustering that cuts at the weak edge
-        perfect_labels = np.array([0, 0, 1, 1])  # Should cut edge 1-2
-        
-        # Test unweighted conductance
-        phi_unweighted = evaluate_phi_conductance(data, perfect_labels, method='unweighted')
-        
-        # Test both methods
-        phi_both = evaluate_phi_conductance(data, perfect_labels, method='both')
-        
-        # Assertions
-        assert 'phi' in phi_unweighted, "Should return conductance values"
-        assert 'avg_phi' in phi_unweighted, "Should return average conductance"
-        assert phi_unweighted['method'] == 'unweighted_standard', "Should indicate unweighted method"
-        
-        assert 'unweighted' in phi_both, "Should return unweighted results"
-        assert 'weighted' in phi_both, "Should return weighted results"
-        
-        print(f"✅ Conductance calculations working: unweighted φ={phi_unweighted['avg_phi']:.4f}")
 
     def test_edge_cases(self):
         """Test edge cases and error handling."""

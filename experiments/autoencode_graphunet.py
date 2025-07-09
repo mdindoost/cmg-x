@@ -8,7 +8,7 @@ from torch_geometric.nn import GCNConv, GraphUNet
 from sklearn.manifold import TSNE
 from datetime import datetime
 
-def run_experiment(dataset_name="Cora", root_dir="data", out_dir="logs/autoencode", epochs=400):
+def run_experiment(dataset_name="Cora", root_dir="data", out_dir="logs/autoencode", epochs=200):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     dataset = Planetoid(root=os.path.join(root_dir, dataset_name), name=dataset_name)
     data = dataset[0].to(device)

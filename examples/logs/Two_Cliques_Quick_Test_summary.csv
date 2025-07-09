@@ -1,0 +1,5 @@
+Method,Clusters,Avg_φ,Avg_γ,Avg_φγ
+baseline,10,1.0000,0.0881,0.0881
+Filtered_k5,3,0.4454,0.1825,0.0607
+Filtered_k10,2,0.0476,0.2500,0.0119
+Filtered_k15,2,0.0476,0.2500,0.0119

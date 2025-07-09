@@ -329,18 +329,18 @@ def run_all_graph_types():
     # Two cliques (reference)
     graphs['Two Cliques'] = generate_two_cliques_with_bridge()
     
-    # Grid graphs
-    print("  Grid 5x5...")
-    G = nx.grid_2d_graph(5, 5)
-    mapping = {(i, j): i * 5 + j for i in range(5) for j in range(5)}
-    G = nx.relabel_nodes(G, mapping)
-    graphs['Grid 5x5'] = from_networkx(G)
+    # # Grid graphs
+    # print("  Grid 5x5...")
+    # G = nx.grid_2d_graph(5, 5)
+    # mapping = {(i, j): i * 5 + j for i in range(5) for j in range(5)}
+    # G = nx.relabel_nodes(G, mapping)
+    # graphs['Grid 5x5'] = from_networkx(G)
     
-    print("  Grid 10x10...")
-    G = nx.grid_2d_graph(10, 10)
-    mapping = {(i, j): i * 10 + j for i in range(10) for j in range(10)}
-    G = nx.relabel_nodes(G, mapping)
-    graphs['Grid 10x10'] = from_networkx(G)
+    # print("  Grid 10x10...")
+    # G = nx.grid_2d_graph(10, 10)
+    # mapping = {(i, j): i * 10 + j for i in range(10) for j in range(10)}
+    # G = nx.relabel_nodes(G, mapping)
+    # graphs['Grid 10x10'] = from_networkx(G)
     
     # Path graphs
     print("  Path 10...")
@@ -349,28 +349,28 @@ def run_all_graph_types():
     print("  Path 100...")
     graphs['Path 100'] = from_networkx(nx.path_graph(100))
     
-    # ER graphs
-    print("  ER (50, 0.1)...")
-    G = nx.erdos_renyi_graph(50, 0.1, seed=42)
-    G.remove_nodes_from(list(nx.isolates(G)))
-    G = nx.convert_node_labels_to_integers(G)
-    graphs['ER (50, 0.1)'] = from_networkx(G)
+    # # ER graphs
+    # print("  ER (50, 0.1)...")
+    # G = nx.erdos_renyi_graph(50, 0.1, seed=42)
+    # G.remove_nodes_from(list(nx.isolates(G)))
+    # G = nx.convert_node_labels_to_integers(G)
+    # graphs['ER (50, 0.1)'] = from_networkx(G)
     
-    print("  ER (1000, 0.05)...")
-    G = nx.erdos_renyi_graph(1000, 0.05, seed=42)
-    G.remove_nodes_from(list(nx.isolates(G)))
-    G = nx.convert_node_labels_to_integers(G)
-    graphs['ER (1000, 0.05)'] = from_networkx(G)
+    # print("  ER (1000, 0.05)...")
+    # G = nx.erdos_renyi_graph(1000, 0.05, seed=42)
+    # G.remove_nodes_from(list(nx.isolates(G)))
+    # G = nx.convert_node_labels_to_integers(G)
+    # graphs['ER (1000, 0.05)'] = from_networkx(G)
     
-    # Small-world graph (n=200, k=6, p=0.3)
-    print("  Small-world (200)...")
-    G = nx.watts_strogatz_graph(200, 6, 0.3, seed=42)
-    graphs['Small-World (200)'] = from_networkx(G)
+    # # Small-world graph (n=200, k=6, p=0.3)
+    # print("  Small-world (200)...")
+    # G = nx.watts_strogatz_graph(200, 6, 0.3, seed=42)
+    # graphs['Small-World (200)'] = from_networkx(G)
     
-    # Scale-free graph (n=200, m=3)
-    print("  Scale-free (200)...")
-    G = nx.barabasi_albert_graph(200, 3, seed=42)
-    graphs['Scale-Free (200)'] = from_networkx(G)
+    # # Scale-free graph (n=200, m=3)
+    # print("  Scale-free (200)...")
+    # G = nx.barabasi_albert_graph(200, 3, seed=42)
+    # graphs['Scale-Free (200)'] = from_networkx(G)
     
     print(f"✅ Created {len(graphs)} test graphs")
     
