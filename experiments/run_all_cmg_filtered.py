@@ -2,8 +2,8 @@ import os
 import itertools
 from multiprocessing import Pool
 
-# datasets = ["Cora", "Citeseer", "Pubmed"]
-datasets = ["Citeseer"]
+datasets = ["Cora", "Citeseer", "Pubmed"]
+# datasets = ["Citeseer"]
 ks = [5, 10, 15]
 unpool_modes = ["copy", "mean", "central", "first", "random"]
 pooling_modes = ["sum", "mean"]

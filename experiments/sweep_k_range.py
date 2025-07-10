@@ -49,6 +49,8 @@ def main(dataset_name: str = "Cora", d: int = 20, k_min: int = 1, k_max: int = 3
     X = np.random.randn(data.num_nodes, d)
 
     log_file = f"sweep_{dataset_name.lower()}_k{str(k_min)}_{str(k_max)}.csv"
+    results = []
+
     with open(log_file, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["k", "lambda_critical", "energy_F2", "stable_rank"])
@@ -59,9 +61,12 @@ def main(dataset_name: str = "Cora", d: int = 20, k_min: int = 1, k_max: int = 3
             rank = compute_stable_rank(Y)
             lambda_crit = compute_lambda_critical(k)
             writer.writerow([k, lambda_crit, energy, rank])
+            results.append((k, lambda_crit, energy, rank))
             print(f"k={k:2d}  lambda_crit={lambda_crit:.4f}  energy={energy:.4f}  rank={rank:.2f}")
 
+    best_by_rank = max(results, key=lambda tup: tup[3])
     print(f"\n[✓] Sweep complete. Results saved to: {log_file}")
+    print(f"[Auto-Select] Best k by stable rank: k={best_by_rank[0]} (rank={best_by_rank[3]:.2f})")
 
 
 if __name__ == "__main__":
